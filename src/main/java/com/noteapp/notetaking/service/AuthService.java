@@ -10,8 +10,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -55,5 +59,17 @@ public class AuthService {
         } catch (BadCredentialsException e) {
             return new AuthResponseDTO(null, "error: Invalid email or password");
         }
+    }
+
+    public AuthResponseDTO oauth2Success() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+
+        String email = oAuth2User.getAttribute("email");
+        if (email == null) {
+            email = oAuth2User.getAttribute("login") + "@github.local";
+        }
+        String token = jwtUtil.generateToken(email);
+        return new AuthResponseDTO(token, "success");
     }
 }

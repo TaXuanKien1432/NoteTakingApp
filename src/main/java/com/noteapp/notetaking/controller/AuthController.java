@@ -5,10 +5,7 @@ import com.noteapp.notetaking.dto.LoginDTO;
 import com.noteapp.notetaking.dto.RegisterDTO;
 import com.noteapp.notetaking.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -37,5 +34,11 @@ public class AuthController {
         } else {
             return ResponseEntity.badRequest().body(authResponseDTO);
         }
+    }
+
+    @GetMapping("/oauth2/success")
+    public ResponseEntity<AuthResponseDTO> oauth2Success() {
+        AuthResponseDTO authResponseDTO = authService.oauth2Success();
+        return ResponseEntity.ok(authResponseDTO);
     }
 }
