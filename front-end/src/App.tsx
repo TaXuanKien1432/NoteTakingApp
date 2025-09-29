@@ -3,7 +3,7 @@ import MainStart from './components/MainStart'
 import Navbar from './components/Navbar'
 
 function App() {
-  return <div>
+  return <div className="w-full">
     <Navbar />
     <MainStart />
     <Footer />

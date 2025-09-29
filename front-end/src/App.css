@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+@theme {
+    --color-jotpool: #0473ea
+}
