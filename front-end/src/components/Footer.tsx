@@ -1,14 +1,15 @@
 import React from 'react'
 import logo from '../assets/logo.png'
+import { Link } from 'react-router-dom'
 
 const Footer:React.FC = () => {
   return (
     <footer className="w-full px-6 py-10 bg-gray-50 flex justify-between">
         <section className='flex flex-col items-center justify-evenly'>
-            <div className='flex items-center justify-center flex-wrap px-1 py-1'>
+            <Link to="/" className='flex items-center justify-center flex-wrap px-1 py-1'>
                 <img src={logo} className='w-20'></img>
                 <div className='font-bold text-2xl'>JotPool</div>
-            </div>
+            </Link>
             <div className='text-gray-400'>© {new Date().getFullYear()} JotPool.</div>
         </section>
         <section>
