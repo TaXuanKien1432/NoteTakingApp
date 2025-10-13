@@ -8,19 +8,19 @@ const SignupForm:React.FC = () => {
             <input 
                 type="text"
                 placeholder='Full name'
-                className='w-full border rounded-lg px-3 py-2'
+                className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
             />
             <input
                 type="email"
                 placeholder='Email'
-                className='w-full border rounded-lg px-3 py-2'
+                className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
             />
             <input 
                 type="password"
                 placeholder='Password'
-                className='w-full border rounded-lg px-3 py-2'
+                className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
             />
             <button className='px-3 py-2 font-medium text-white bg-jotpool rounded-lg hover:bg-blue-600'>Sign up</button>
