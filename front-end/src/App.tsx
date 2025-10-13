@@ -1,13 +1,7 @@
-import Footer from './components/Footer'
-import MainStart from './components/MainStart'
-import Navbar from './components/Navbar'
+import StartPage from './pages/StartPage'
 
 function App() {
-  return <div className="w-full">
-    <Navbar />
-    <MainStart />
-    <Footer />
-  </div>
+  return <StartPage />
 }
 
 export default App
