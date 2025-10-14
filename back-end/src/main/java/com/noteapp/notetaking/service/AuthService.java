@@ -3,14 +3,17 @@ package com.noteapp.notetaking.service;
 import com.noteapp.notetaking.dto.AuthResponseDTO;
 import com.noteapp.notetaking.dto.LoginDTO;
 import com.noteapp.notetaking.dto.RegisterDTO;
+import com.noteapp.notetaking.dto.UserDTO;
 import com.noteapp.notetaking.entity.User;
 import com.noteapp.notetaking.repository.UserRepository;
 import com.noteapp.notetaking.util.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -29,22 +32,20 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
+    @Transactional
     public AuthResponseDTO register(RegisterDTO registerDTO) {
         if (userRepository.findByEmail(registerDTO.getEmail()).isPresent()) {
-            return new AuthResponseDTO(null, "error: Email is already taken");
+            return new AuthResponseDTO(null, "Email already in use", null);
         }
         User user = new User();
         user.setName(registerDTO.getName());
         user.setEmail(registerDTO.getEmail());
         user.setPasswordHash(passwordEncoder.encode(registerDTO.getPassword()));
 
-        userRepository.save(user);
-
-        //Login automatically after registration
-        LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setEmail(registerDTO.getEmail());
-        loginDTO.setPassword(registerDTO.getPassword());
-        return login(loginDTO);
+        User saved = userRepository.save(user);
+        String accessToken = jwtUtil.generateToken(saved.getEmail());
+        UserDTO userDTO = new UserDTO(saved.getId(), saved.getName(), saved.getEmail(), saved.getProfilePicture());
+        return new AuthResponseDTO(accessToken, "success", userDTO);
     }
 
     public AuthResponseDTO login(LoginDTO loginDTO) {
@@ -52,10 +53,12 @@ public class AuthService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
             );
-            String token = jwtUtil.generateToken(loginDTO.getEmail());
-            return new AuthResponseDTO(token, "success");
+            String accessToken = jwtUtil.generateToken(loginDTO.getEmail());
+            User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
+            return new AuthResponseDTO(accessToken, "success", userDTO);
         } catch (BadCredentialsException e) {
-            return new AuthResponseDTO(null, "error: Invalid email or password");
+            return new AuthResponseDTO(null, "Invalid email or password", null);
         }
     }
 
@@ -64,10 +67,30 @@ public class AuthService {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
         String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
+        String picture = oAuth2User.getAttribute("picture");
+
         if (email == null) {
-            email = oAuth2User.getAttribute("login") + "@github.local";
+            String githubLogin = oAuth2User.getAttribute("login");
+            email = githubLogin + "@github.local";
+            if (name == null) name = githubLogin;
+            if (picture == null) picture = oAuth2User.getAttribute("avatar_url");
         }
-        String token = jwtUtil.generateToken(email);
-        return new AuthResponseDTO(token, "success");
+
+        String finalEmail = email;
+        String finalName = name;
+        String finalPicture = picture;
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(finalEmail);
+            newUser.setName(finalName);
+            newUser.setProfilePicture(finalPicture);
+            return userRepository.save(newUser);
+        });
+
+        String accessToken = jwtUtil.generateToken(email);
+
+        UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
+        return new AuthResponseDTO(accessToken, "success", userDTO);
     }
 }

@@ -24,23 +24,23 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String accessToken) {
         return Jwts.parser()
                 .verifyWith(SECRET_KEY)
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(accessToken)
                 .getPayload();
     }
 
-    public String extractEmail(String token) {
-        return extractAllClaims(token).getSubject();
+    public String extractEmail(String accessToken) {
+        return extractAllClaims(accessToken).getSubject();
     }
 
-    public boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+    public boolean isTokenExpired(String accessToken) {
+        return extractAllClaims(accessToken).getExpiration().before(new Date());
     }
 
-    public boolean validateToken(String token, String email) {
-        return email.equals(extractEmail(token)) && !isTokenExpired(token);
+    public boolean validateToken(String accessToken, String email) {
+        return email.equals(extractEmail(accessToken)) && !isTokenExpired(accessToken);
     }
 }
