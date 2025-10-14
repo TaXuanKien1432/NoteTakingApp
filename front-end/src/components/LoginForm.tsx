@@ -1,13 +1,31 @@
 import React, { useState } from 'react'
+import { login } from '../services/auth';
+import { useNavigate } from 'react-router-dom';
+import Popup from './Popup';
 
 const LoginForm:React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const user = await login(email, password);
+      navigate("/home");
+    } catch (err: any) {
+      console.log(err);
+      setError(err.message || "Something went wrong. Please try again.");
+    }
+  }
   
   return (
     <div className="flex flex-col justify-center items-center">
         <div className='mb-3 font-bold text-lg'>Login to your JotPool account</div>
-        <form className='w-100 flex flex-col space-y-3'>
+        {error && <Popup message={error} color="red" onClose={() => setError(null)} />}
+        <form onSubmit={handleLogin} className='w-100 flex flex-col space-y-3'>
             <input
                 type="email"
                 placeholder='Email'
@@ -29,3 +47,5 @@ const LoginForm:React.FC = () => {
 }
 
 export default LoginForm
+
+//Todo: add logout logic, also pass user to Home page so that it can display user's name and profile pic

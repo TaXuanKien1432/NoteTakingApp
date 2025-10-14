@@ -1,15 +1,32 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
+import { register } from '../services/auth';
+import Popup from './Popup';
 
 const SignupForm:React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
+  const handleSignup = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      try {
+        const user = await register(name, email, password);
+        navigate("/home");
+      } catch (err: any) {
+        console.log(err);
+        setError(err.message || "Something went wrong. Please try again.");
+      }
+    };
   
     return (
     <div className="flex flex-col justify-center items-center">
         <div className='mb-3 font-bold text-lg'>Create your JotPool account</div>
-        <form className='w-100 flex flex-col space-y-3'>
+        {error && <Popup message={error} color={"red"} onClose={() => setError(null)} />}
+        <form onSubmit={handleSignup} className='w-100 flex flex-col space-y-3'>
             <input 
                 type="text"
                 placeholder='Full name'
