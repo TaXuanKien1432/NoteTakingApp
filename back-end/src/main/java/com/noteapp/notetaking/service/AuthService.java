@@ -8,15 +8,16 @@ import com.noteapp.notetaking.entity.User;
 import com.noteapp.notetaking.repository.UserRepository;
 import com.noteapp.notetaking.util.JwtUtil;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
@@ -33,9 +34,9 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponseDTO register(RegisterDTO registerDTO) {
+    public AuthResponseDTO register(RegisterDTO registerDTO) throws ResponseStatusException {
         if (userRepository.findByEmail(registerDTO.getEmail()).isPresent()) {
-            return new AuthResponseDTO(null, "Email already in use", null);
+            throw new ResponseStatusException(HttpStatusCode.valueOf(409), "Email already in use");
         }
         User user = new User();
         user.setName(registerDTO.getName());
@@ -48,18 +49,14 @@ public class AuthService {
         return new AuthResponseDTO(accessToken, "success", userDTO);
     }
 
-    public AuthResponseDTO login(LoginDTO loginDTO) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
-            );
-            String accessToken = jwtUtil.generateToken(loginDTO.getEmail());
-            User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
-            return new AuthResponseDTO(accessToken, "success", userDTO);
-        } catch (BadCredentialsException e) {
-            return new AuthResponseDTO(null, "Invalid email or password", null);
-        }
+    public AuthResponseDTO login(LoginDTO loginDTO) throws BadCredentialsException {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
+        );
+        User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+        String accessToken = jwtUtil.generateToken(loginDTO.getEmail());
+        UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
+        return new AuthResponseDTO(accessToken, "success", userDTO);
     }
 
     public AuthResponseDTO oauth2Success() {

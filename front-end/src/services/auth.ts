@@ -30,9 +30,7 @@ export async function login(email: string, password: string): Promise<UserDTO> {
         method: "POST",
         body: { email, password },
     });
-    if (!data || data.message !== "success" || !data.accessToken) {
-        throw new Error(data?.message);
-    }
+    
     setToken(data.accessToken);
     return data.userDTO;
 }
@@ -42,9 +40,7 @@ export async function register(name: string, email: string, password: string): P
         method: "POST",
         body: { name, email, password },
     });
-    if (!data || data.message !== "success" || !data.accessToken) {
-        throw new Error(data?.message);
-    }
+    
     setToken(data.accessToken);
     return data.userDTO;
 }
