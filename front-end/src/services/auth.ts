@@ -1,6 +1,6 @@
 import { apiFetch } from "./api";
 
-export interface User {
+export interface UserDTO {
     id: number;
     name: string;
     email: string;
@@ -8,9 +8,9 @@ export interface User {
 }
 
 export interface AuthResponse {
-    accessToken: string | null;
+    accessToken: string;
     message: string;
-    user: User | null;
+    userDTO: UserDTO;
 }
 
 export function setToken(accessToken: string) {
@@ -25,27 +25,27 @@ export function clearToken() {
     localStorage.removeItem("accessToken");
 }
 
-export async function login(email: string, password: string): Promise<User> {
+export async function login(email: string, password: string): Promise<UserDTO> {
     const data = await apiFetch<AuthResponse>("/auth/login", {
         method: "POST",
         body: { email, password },
     });
-    if (data.message !== "success" || !data.accessToken) {
-        throw new Error(data.message);
+    if (!data || data.message !== "success" || !data.accessToken) {
+        throw new Error(data?.message);
     }
     setToken(data.accessToken);
-    return data.user as User;
+    return data.userDTO;
 }
 
-export async function register(name: string, email: string, password: string): Promise<User> {
+export async function register(name: string, email: string, password: string): Promise<UserDTO> {
     const data = await apiFetch<AuthResponse>("/auth/register", {
         method: "POST",
         body: { name, email, password },
     });
-    if (data.message !== "success" || !data.accessToken) {
-        throw new Error(data.message);
+    if (!data || data.message !== "success" || !data.accessToken) {
+        throw new Error(data?.message);
     }
     setToken(data.accessToken);
-    return data.user as User;
+    return data.userDTO;
 }
 

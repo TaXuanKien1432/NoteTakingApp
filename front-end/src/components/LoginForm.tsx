@@ -47,5 +47,3 @@ const LoginForm:React.FC = () => {
 }
 
 export default LoginForm
-
-//Todo: add logout logic, also pass user to Home page so that it can display user's name and profile pic
