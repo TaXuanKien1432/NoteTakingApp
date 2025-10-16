@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Auth from './pages/Auth.tsx'
 import './App.css'
 import Home from './pages/Home.tsx'
+import { UserContextProvider } from './contexts/UserContext.tsx'
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -15,6 +16,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router = {router}/>
+    <UserContextProvider>
+      <RouterProvider router = {router}/>
+    </UserContextProvider>
   </StrictMode>,
 )

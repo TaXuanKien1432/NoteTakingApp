@@ -1,19 +1,22 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { login } from '../services/auth';
 import { useNavigate } from 'react-router-dom';
 import Popup from './Popup';
+import { UserContext } from '../contexts/UserContext';
 
 const LoginForm:React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext)!;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      const user = await login(email, password);
+      const userDTO = await login(email, password);
+      setUser(userDTO);
       navigate("/home");
     } catch (err: any) {
       console.log(err);

@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { register } from '../services/auth';
 import Popup from './Popup';
+import { UserContext } from '../contexts/UserContext';
 
 const SignupForm:React.FC = () => {
   const [name, setName] = useState("");
@@ -9,6 +10,7 @@ const SignupForm:React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { setUser } = useContext(UserContext)!;
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -19,7 +21,8 @@ const SignupForm:React.FC = () => {
         return;
       }
       try {
-        const user = await register(name, email, password);
+        const userDTO = await register(name, email, password);
+        setUser(userDTO);
         navigate("/home");
       } catch (err: any) {
         console.log(err);
