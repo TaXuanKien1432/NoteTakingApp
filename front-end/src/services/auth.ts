@@ -9,8 +9,6 @@ export interface UserDTO {
 
 export interface AuthResponse {
     accessToken: string;
-    message: string;
-    userDTO: UserDTO;
 }
 
 export async function login(email: string, password: string): Promise<UserDTO> {
@@ -18,10 +16,10 @@ export async function login(email: string, password: string): Promise<UserDTO> {
         method: "POST",
         body: { email, password },
     });
-    
     localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("user", JSON.stringify(data.userDTO));
-    return data.userDTO;
+    const userDTO = await apiFetch<UserDTO>("/auth/me", { method: "GET" });
+    localStorage.setItem("user", JSON.stringify(userDTO));
+    return userDTO;
 }
 
 export async function register(name: string, email: string, password: string): Promise<UserDTO> {
@@ -29,9 +27,9 @@ export async function register(name: string, email: string, password: string): P
         method: "POST",
         body: { name, email, password },
     });
-    
     localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("user", JSON.stringify(data.userDTO));
-    return data.userDTO;
+    const userDTO = await apiFetch<UserDTO>("/auth/me", { method: "GET" });
+    localStorage.setItem("user", JSON.stringify(userDTO));
+    return userDTO;
 }
 

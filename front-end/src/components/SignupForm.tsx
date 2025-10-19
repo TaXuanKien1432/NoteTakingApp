@@ -10,24 +10,28 @@ const SignupForm:React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const { setUser } = useContext(UserContext)!;
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
-      if (password != confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-      try {
-        const userDTO = await register(name, email, password);
-        setUser(userDTO);
-        navigate("/home");
-      } catch (err: any) {
-        console.log(err);
-        setError(err.message || "Something went wrong. Please try again.");
-      }
+          setError(null);
+          setLoading(true);
+          if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+          }
+          try {
+            const userDTO = await register(name, email, password);
+            setUser(userDTO);
+            navigate("/home");
+          } catch (err: any) {
+            console.log(err);
+            setError(err.message || "Login failed. Please try again.");
+          } finally {
+            setLoading(false);
+          }
     };
   
     return (
@@ -40,6 +44,7 @@ const SignupForm:React.FC = () => {
                 placeholder='Full name'
                 className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
+                value={name}
                 onChange={(e) => setName(e.target.value)}
             />
             <input
@@ -47,6 +52,7 @@ const SignupForm:React.FC = () => {
                 placeholder='Email'
                 className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
             />
             <input 
@@ -54,6 +60,7 @@ const SignupForm:React.FC = () => {
                 placeholder='Password'
                 className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
             <input 
@@ -61,9 +68,10 @@ const SignupForm:React.FC = () => {
                 placeholder='Confirm Password'
                 className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
+                value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <button className='px-3 py-2 font-medium text-white bg-jotpool rounded-lg hover:bg-blue-600'>Sign up</button>
+            <button type='submit' disabled={loading} className='px-3 py-2 font-medium text-white bg-jotpool rounded-lg hover:bg-blue-600'>Sign up</button>
         </form>
     </div>
   )

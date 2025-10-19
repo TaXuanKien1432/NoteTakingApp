@@ -30,7 +30,7 @@ export interface ApiFetchOtions {
     body?: unknown;
 }
 
-export async function apiFetch<T>(path: string, options: ApiFetchOtions):Promise<T> {
+export async function apiFetch<T>(path: string, options: ApiFetchOtions): Promise<T> {
     const {method, body} = options;
     const response: AxiosResponse<T> = await api.request<T>({
         url: path,

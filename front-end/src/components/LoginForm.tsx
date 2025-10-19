@@ -8,19 +8,23 @@ const LoginForm:React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useContext(UserContext)!;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
     try {
       const userDTO = await login(email, password);
       setUser(userDTO);
       navigate("/home");
     } catch (err: any) {
       console.log(err);
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
   
@@ -34,6 +38,7 @@ const LoginForm:React.FC = () => {
                 placeholder='Email'
                 className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
             />
             <input 
@@ -41,9 +46,10 @@ const LoginForm:React.FC = () => {
                 placeholder='Password'
                 className='w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent'
                 required
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
-            <button className='px-3 py-2 font-medium text-white bg-jotpool rounded-lg hover:bg-blue-600'>Log in</button>
+            <button type="submit" disabled={loading} className='px-3 py-2 font-medium text-white bg-jotpool rounded-lg hover:bg-blue-600'>Log in</button>
         </form>
     </div>
   )
