@@ -28,7 +28,7 @@ const SignupForm:React.FC = () => {
             navigate("/home");
           } catch (err: any) {
             console.log(err);
-            setError(err.message || "Login failed. Please try again.");
+            setError(err.message || "Signup failed. Please try again.");
           } finally {
             setLoading(false);
           }
