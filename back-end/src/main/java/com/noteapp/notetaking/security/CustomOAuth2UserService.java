@@ -26,36 +26,42 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String registrationId = request.getClientRegistration().getRegistrationId(); //"google" or "github"
         String providerId = oAuth2User.getName(); //Google: sub, Github: numeric ID
-        String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
+        String email = oAuth2User.getAttribute("email");
+        if (email == null) email = oAuth2User.getAttribute("login") + "@github.local";
 
-        User user;
+        User user = null;
 
         if (registrationId.equals("google")) {
-            user = userRepository.findByGoogleId(providerId).orElse(new User());
+            user = userRepository.findByGoogleId(providerId).orElse(null);
+        } else if (registrationId.equals("github")) {
+            user = userRepository.findByGithubId(providerId).orElse(null);
+        }
+        //cannot find by providerId then find by email
+        if (user == null) {
+            user = userRepository.findByEmail(email).orElse(null);
+        }
+        //cannot find by email then create new user
+        if (user == null) user = new User();
+
+        if (registrationId.equals("google")) {
             user.setEmail(email);
             user.setName(name);
             user.setProfilePicture(oAuth2User.getAttribute("picture"));
             user.setAuthProvider("GOOGLE");
             user.setGoogleId(providerId);
             user.setVerified(true);
-
             userRepository.save(user);
             System.out.println(">>> Google save email: " + email);
-            System.out.println(">>> Google providerId: " + providerId);
         } else if (registrationId.equals("github")) {
-            user = userRepository.findByGithubId(providerId).orElse(new User());
+            user.setEmail(email);
             user.setName(name != null ? name : oAuth2User.getAttribute("login"));
             user.setProfilePicture(oAuth2User.getAttribute("avatar_url"));
             user.setAuthProvider("GITHUB");
             user.setGithubId(providerId);
-            if (email == null) email = oAuth2User.getAttribute("login") + "@github.local";
-            user.setEmail(email);
             user.setVerified(true);
-
             userRepository.save(user);
             System.out.println(">>> Github save email: " + email);
-            System.out.println(">>> Github providerId: " + providerId);
         }
 
         return oAuth2User;

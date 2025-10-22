@@ -73,7 +73,6 @@ public class AuthService {
 
     public UserDTO getCurrentUser(String accessToken) {
         String email = jwtUtil.extractEmail(accessToken);
-        System.out.println(">>> Extracted from token: " + email);
         if (!jwtUtil.validateToken(accessToken, email)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
         }
