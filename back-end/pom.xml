@@ -11,7 +11,7 @@
 	<groupId>com.noteapp</groupId>
 	<artifactId>notetaking</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>NoteTaking</name>
+	<name>JotPool</name>
 	<description>A Notion-like collaborative note-taking app</description>
 	<url/>
 	<licenses>

@@ -7,17 +7,20 @@ import com.noteapp.notetaking.dto.UserDTO;
 import com.noteapp.notetaking.entity.User;
 import com.noteapp.notetaking.repository.UserRepository;
 import com.noteapp.notetaking.util.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
 
 @Service
 public class AuthService {
@@ -45,8 +48,7 @@ public class AuthService {
 
         User saved = userRepository.save(user);
         String accessToken = jwtUtil.generateToken(saved.getEmail());
-        UserDTO userDTO = new UserDTO(saved.getId(), saved.getName(), saved.getEmail(), saved.getProfilePicture());
-        return new AuthResponseDTO(accessToken, "success", userDTO);
+        return new AuthResponseDTO(accessToken);
     }
 
     public AuthResponseDTO login(LoginDTO loginDTO) throws BadCredentialsException {
@@ -54,40 +56,31 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
         );
         User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
-        String accessToken = jwtUtil.generateToken(loginDTO.getEmail());
-        UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
-        return new AuthResponseDTO(accessToken, "success", userDTO);
+        String accessToken = jwtUtil.generateToken(user.getEmail());
+        return new AuthResponseDTO(accessToken);
     }
 
-    public AuthResponseDTO oauth2Success() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public void oauth2Success(HttpServletResponse response, Authentication authentication) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
         String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
-        String picture = oAuth2User.getAttribute("picture");
-
-        if (email == null) {
-            String githubLogin = oAuth2User.getAttribute("login");
-            email = githubLogin + "@github.local";
-            if (name == null) name = githubLogin;
-            if (picture == null) picture = oAuth2User.getAttribute("avatar_url");
-        }
-
-        String finalEmail = email;
-        String finalName = name;
-        String finalPicture = picture;
-        User user = userRepository.findByEmail(email).orElseGet(() -> {
-            User newUser = new User();
-            newUser.setEmail(finalEmail);
-            newUser.setName(finalName);
-            newUser.setProfilePicture(finalPicture);
-            return userRepository.save(newUser);
-        });
-
+        System.out.println(">>> oauth2Success email: " + email);
+        if (email == null) email = oAuth2User.getAttribute("login") + "@github.local";
         String accessToken = jwtUtil.generateToken(email);
+        String redirectUrl = "http://localhost:5173/oauth2/redirect?token=" + accessToken;
 
-        UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
-        return new AuthResponseDTO(accessToken, "success", userDTO);
+        response.sendRedirect(redirectUrl);
+    }
+
+    public UserDTO getCurrentUser(String accessToken) {
+        String email = jwtUtil.extractEmail(accessToken);
+        System.out.println(">>> Extracted from token: " + email);
+        if (!jwtUtil.validateToken(accessToken, email)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getProfilePicture());
     }
 }

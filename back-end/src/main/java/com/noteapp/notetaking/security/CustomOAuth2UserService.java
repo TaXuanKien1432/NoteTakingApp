@@ -2,6 +2,7 @@ package com.noteapp.notetaking.security;
 
 import com.noteapp.notetaking.entity.User;
 import com.noteapp.notetaking.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -17,10 +18,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
+        System.out.println(">>> CustomOAuth2UserService called for provider: "
+                + request.getClientRegistration().getRegistrationId());
         OAuth2User oAuth2User = super.loadUser(request);
 
-        String registrationId = request.getClientRegistration().getRegistrationId();
+        String registrationId = request.getClientRegistration().getRegistrationId(); //"google" or "github"
         String providerId = oAuth2User.getName(); //Google: sub, Github: numeric ID
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
@@ -37,6 +41,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setVerified(true);
 
             userRepository.save(user);
+            System.out.println(">>> Google save email: " + email);
+            System.out.println(">>> Google providerId: " + providerId);
         } else if (registrationId.equals("github")) {
             user = userRepository.findByGithubId(providerId).orElse(new User());
             user.setName(name != null ? name : oAuth2User.getAttribute("login"));
@@ -48,6 +54,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setVerified(true);
 
             userRepository.save(user);
+            System.out.println(">>> Github save email: " + email);
+            System.out.println(">>> Github providerId: " + providerId);
         }
 
         return oAuth2User;

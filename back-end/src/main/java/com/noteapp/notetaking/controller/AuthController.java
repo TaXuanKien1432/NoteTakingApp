@@ -3,6 +3,7 @@ package com.noteapp.notetaking.controller;
 import com.noteapp.notetaking.dto.AuthResponseDTO;
 import com.noteapp.notetaking.dto.LoginDTO;
 import com.noteapp.notetaking.dto.RegisterDTO;
+import com.noteapp.notetaking.dto.UserDTO;
 import com.noteapp.notetaking.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,7 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -28,6 +28,8 @@ public class AuthController {
             return ResponseEntity.ok(authResponseDTO);
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(400).body(Map.of("message", "Email already in use"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -43,9 +45,22 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/oauth2/success")
-    public ResponseEntity<AuthResponseDTO> oauth2Success() {
-        AuthResponseDTO authResponseDTO = authService.oauth2Success();
-        return ResponseEntity.ok(authResponseDTO);
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Missing Authorization header"));
+        }
+        if (!authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid token format"));
+        }
+        String accessToken = authHeader.substring(7);
+        try {
+            UserDTO userDTO = authService.getCurrentUser(accessToken);
+            return ResponseEntity.ok(userDTO);
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(Map.of("message", ex.getReason()));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage()));
+        }
     }
 }
