@@ -18,7 +18,6 @@ export async function login(email: string, password: string): Promise<UserDTO> {
     });
     localStorage.setItem("accessToken", data.accessToken);
     const userDTO = await apiFetch<UserDTO>("/auth/me", { method: "GET" });
-    localStorage.setItem("user", JSON.stringify(userDTO));
     return userDTO;
 }
 
@@ -29,7 +28,6 @@ export async function register(name: string, email: string, password: string): P
     });
     localStorage.setItem("accessToken", data.accessToken);
     const userDTO = await apiFetch<UserDTO>("/auth/me", { method: "GET" });
-    localStorage.setItem("user", JSON.stringify(userDTO));
     return userDTO;
 }
 

@@ -8,11 +8,21 @@ import { UserContextProvider } from './contexts/UserContext.tsx'
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 import StartPage from './pages/StartPage.tsx'
+import PublicRoute from './components/PublicRoute.tsx'
 
 const router = createBrowserRouter([
-  { path: "/", element: <StartPage /> },
-  { path: "/login", element: <Auth />},
-  { path: "/signup", element: <Auth />},
+  { path: "/", element: (
+    <PublicRoute>
+      <StartPage />
+    </PublicRoute>) },
+  { path: "/login", element: (
+    <PublicRoute>
+      <Auth />
+    </PublicRoute>)},
+  { path: "/signup", element: (
+    <PublicRoute>
+      <Auth />
+    </PublicRoute>)},
   { path: "/home", element: (
     <ProtectedRoute>
       <Home />
