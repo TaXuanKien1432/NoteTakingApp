@@ -1,14 +1,173 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { GoHome } from "react-icons/go";
+import { useContext, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import defaultAvatar from '../assets/default-avatar.png'
+import { AiOutlineHome, AiOutlinePlus } from "react-icons/ai";
+import { BiLock } from 'react-icons/bi';
+import { apiFetch } from '../services/api';
+import { UserContext } from '../contexts/UserContext';
+import type { Note } from '../pages/Home';
+import { FiTrash2 } from 'react-icons/fi';
+import ConfirmationPopup from './ConfirmationPopup';
 
-const Sidebar: React.FC = () => {
-  const { pathname } = useLocation();
+interface SidebarProps {
+  selectedNote: Note | null;
+  setSelectedNote: (note: Note | null) => void;
+}
+
+const Sidebar = ({selectedNote, setSelectedNote}: SidebarProps) => {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+  const {user, setUser} = useContext(UserContext)!;
+  const [showMenu, setShowMenu] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchNotes();
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      const data = await apiFetch<Note[]>("/api/notes", { method: "GET" });
+      setNotes(data);
+    } catch(err) {
+      console.error("Failed to load notes:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    setUser(null);
+    navigate("/");
+  };
+
+  const handleAddNote = async () => {
+    try {
+      console.log(localStorage.getItem("accessToken"))
+      const newNote = await apiFetch<Note>("/api/notes", {method: "POST"});
+      setNotes((prev) => [newNote, ...prev]);
+      setSelectedNote(newNote);
+    } catch(err) {
+      console.error("Failed to create note:", err);
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    if (!noteToDelete) return;
+    try {
+      await apiFetch(`/api/notes/${noteToDelete.id}`, { method: "DELETE" });
+      setNotes((prev) => prev.filter((note) => note.id !== noteToDelete.id));
+      if (selectedNote?.id === noteToDelete.id) setSelectedNote(null);
+    } catch(err) {
+      console.error("Failed to delete note:", err);
+    } finally {
+      setShowConfirm(false);
+      setNoteToDelete(null);
+    }
+  }
+
+  const handleOutsideClick = (e: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      setShowMenu(false);
+    }
+  };
+
   return (
-    <aside className="w-64 h-screen bg-gray-100 p-4 border-r border-gray-200 flex flex-col">
-      <nav className='flex flex-col gap-2'>
-        
-      </nav>
+    <aside className="w-72 h-screen bg-gray-100 border-r border-gray-300 flex flex-col p-2">
+      {/* USER PROFILE */}
+      <div className="relative" ref={menuRef}>
+        <div 
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-200 rounded-md p-2 mb-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMenu((prev) => !prev);
+          }}>
+            <img src={user?.profilePicture || defaultAvatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+            <div>{user?.name || "User"}</div>
+        </div>
+        {showMenu && (
+          <div className="absolute top-12 left-0 w-80 bg-white shadow-md border border-gray-200 rounded-lg p-2 z-10">
+            <div className="flex gap-3 border-b pb-2 border-gray-300">
+              <img src={user?.profilePicture || defaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+              <div className="flex flex-col">
+                <p className="font-semibold text-sm">{user?.name || "User"}</p>
+                <p className="text-gray-500 font-medium text-sm">{user?.email || ""}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowConfirm(true)} 
+              className='w-full text-left text-gray-500 font-medium hover:bg-gray-100 rounded-md p-2 mt-2'>Logout</button>
+          </div>
+        )}
+      </div>
+
+      {/* HOME NAV */}
+      <div 
+        className={`flex items-center gap-3 p-3 cursor-pointer rounded-md hover:bg-gray-200 ${!selectedNote ? "bg-gray-200" : ""}`}
+        onClick={() => setSelectedNote(null)}
+      >
+        <AiOutlineHome className='text-gray-700 w-5 h-5'/>
+        <span className='text-gray-700 text-sm'>Home</span>
+      </div>
+
+      {/* PRIVATE NOTES */}
+      <div className='flex-1 overflow-y-auto mt-2'>
+        <div className='flex items-center gap-2 px-3 py-2 text-gray-700 text-sm font-medium border-t border-gray-300'>
+          <BiLock className='w-4 h-4' />
+          <span>Private Notes</span>
+        </div>
+
+        <div className='flex-1 overflow-y-auto'>
+          {loading ? (
+            <p className='text-md text-gray-500 px-3 py-2'>Loading notes...</p>
+          ) : (
+            notes.map((note) => (
+              <div
+                key={note.id}
+                className={`group flex items-center justify-between gap-2 px-3 py-2 text-md text-gray-500 cursor-pointer rounded-md ${
+                selectedNote?.id === note.id ? "bg-gray-200" : "hover:bg-gray-200"}`}
+              >
+                <span className='flex-1 truncate' onClick={() => setSelectedNote(note)}>
+                  {note.title.trim() || "Untitled"}
+                </span>
+                <FiTrash2 onClick={(e) => {
+                  e.stopPropagation;
+                  setNoteToDelete(note);
+                  setShowConfirm(true);
+                }} className='hidden group-hover:block text-gray-500 hover:text-red-600 w-4 h-4 flex-shrink-0'/>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div
+          onClick={handleAddNote}
+          className="flex items-center gap-2 px-3 py-2 mt-2 text-md text-gray-500 cursor-pointer hover:bg-gray-200">
+          <AiOutlinePlus className='w-4 h-4 text-gray-500' />
+          <span>Add New</span>
+        </div>
+      </div>
+      
+      <ConfirmationPopup 
+        isOpen={showConfirm}
+        title={noteToDelete ? "Delete Node" : "Logout"}
+        message={noteToDelete ? `Are you sure you want to delete "${noteToDelete.title}"?` : "Are you sure you want to logout?"}
+        confirmLabel={noteToDelete ? "Delete" : "Logout"}
+        cancelLabel='Cancel'
+        onConfirm={noteToDelete ? handleDeleteNote : handleLogout}
+        onCancel={() => {
+          setShowConfirm(false);
+          setNoteToDelete(null);
+        }}
+        />
+      
     </aside>
   );
 }

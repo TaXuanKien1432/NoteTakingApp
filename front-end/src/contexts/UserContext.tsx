@@ -14,11 +14,6 @@ export const UserContextProvider = ({children}: { children: ReactNode}) => {
     const [user, setUser] = useState<UserDTO | null>(null);
     const [authChecked, setAuthChecked] = useState(false);
 
-    const logout = () => {
-        localStorage.removeItem("accessToken");
-        setUser(null);
-    }
-
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
         if (!token) {
@@ -26,7 +21,7 @@ export const UserContextProvider = ({children}: { children: ReactNode}) => {
             return;
         }
 
-        apiFetch<UserDTO>("/auth/me", { method: "GET"})
+        apiFetch<UserDTO>("/auth/me", { method: "GET" })
         .then(setUser)
         .catch((err: any) => {
             console.error("An error occurred:", err);

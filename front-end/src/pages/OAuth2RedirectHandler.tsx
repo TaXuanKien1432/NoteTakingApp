@@ -20,7 +20,6 @@ const OAuth2RedirectHandler = () => {
             localStorage.setItem("accessToken", token);
             try {
                 const userDTO = await apiFetch<UserDTO>("/auth/me", { method: "GET" });
-                localStorage.setItem("user", JSON.stringify(userDTO));
                 setUser(userDTO);
                 navigate("/home");
             } catch (err: any) {
