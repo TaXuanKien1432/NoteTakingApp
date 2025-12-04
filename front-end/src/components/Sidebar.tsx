@@ -1,7 +1,8 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import defaultAvatar from '../assets/default-avatar.png'
+import defaultAvatar from '../assets/default-avatar.svg'
 import { AiOutlineHome, AiOutlinePlus } from "react-icons/ai";
+import { PiNewspaper } from "react-icons/pi";
 import { BiLock } from 'react-icons/bi';
 import { apiFetch } from '../services/api';
 import { UserContext } from '../contexts/UserContext';
@@ -10,12 +11,14 @@ import { FiTrash2 } from 'react-icons/fi';
 import ConfirmationPopup from './ConfirmationPopup';
 
 interface SidebarProps {
+  notes: Note[];
+  setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   selectedNote: Note | null;
   setSelectedNote: (note: Note | null) => void;
 }
 
-const Sidebar = ({selectedNote, setSelectedNote}: SidebarProps) => {
-  const [notes, setNotes] = useState<Note[]>([]);
+const Sidebar = ({notes, setNotes, selectedNote, setSelectedNote}: SidebarProps) => {
+  
   const [loading, setLoading] = useState(true);
   const {user, setUser} = useContext(UserContext)!;
   const [showMenu, setShowMenu] = useState(false);
@@ -50,7 +53,6 @@ const Sidebar = ({selectedNote, setSelectedNote}: SidebarProps) => {
 
   const handleAddNote = async () => {
     try {
-      console.log(localStorage.getItem("accessToken"))
       const newNote = await apiFetch<Note>("/api/notes", {method: "POST"});
       setNotes((prev) => [newNote, ...prev]);
       setSelectedNote(newNote);
@@ -131,9 +133,10 @@ const Sidebar = ({selectedNote, setSelectedNote}: SidebarProps) => {
             notes.map((note) => (
               <div
                 key={note.id}
-                className={`group flex items-center justify-between gap-2 px-3 py-2 text-md text-gray-500 cursor-pointer rounded-md ${
+                className={`group flex items-center justify-between gap-2 px-3 py-2 text-sm text-gray-500 cursor-pointer rounded-md ${
                 selectedNote?.id === note.id ? "bg-gray-200" : "hover:bg-gray-200"}`}
               >
+                <PiNewspaper className='text-gray-500 w-5 h-5'/>
                 <span className='flex-1 truncate' onClick={() => setSelectedNote(note)}>
                   {note.title.trim() || "Untitled"}
                 </span>
@@ -149,8 +152,8 @@ const Sidebar = ({selectedNote, setSelectedNote}: SidebarProps) => {
 
         <div
           onClick={handleAddNote}
-          className="flex items-center gap-2 px-3 py-2 mt-2 text-md text-gray-500 cursor-pointer hover:bg-gray-200">
-          <AiOutlinePlus className='w-4 h-4 text-gray-500' />
+          className="flex items-center gap-2 px-3 py-2 mt-2 text-sm text-gray-500 cursor-pointer hover:bg-gray-200">
+          <AiOutlinePlus className='w-5 h-5 text-gray-500' />
           <span>Add New</span>
         </div>
       </div>
@@ -158,7 +161,7 @@ const Sidebar = ({selectedNote, setSelectedNote}: SidebarProps) => {
       <ConfirmationPopup 
         isOpen={showConfirm}
         title={noteToDelete ? "Delete Node" : "Logout"}
-        message={noteToDelete ? `Are you sure you want to delete "${noteToDelete.title}"?` : "Are you sure you want to logout?"}
+        message={noteToDelete ? "Are you sure you want to delete this note?" : "Are you sure you want to logout?"}
         confirmLabel={noteToDelete ? "Delete" : "Logout"}
         cancelLabel='Cancel'
         onConfirm={noteToDelete ? handleDeleteNote : handleLogout}

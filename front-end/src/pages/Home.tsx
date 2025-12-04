@@ -12,16 +12,19 @@ export interface Note {
 
 const Home:React.FC = () => {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [notes, setNotes] = useState<Note[]>([]);
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar 
-        key={refreshKey}
+        notes={notes}
+        setNotes={setNotes}
         selectedNote={selectedNote}
         setSelectedNote={setSelectedNote}/>
       <NoteEditor 
-        note={selectedNote}
-        refreshSidebar={() => setRefreshKey((prev) => prev+1)}/>
+        notes={notes}
+        setNotes={setNotes}
+        selectedNote={selectedNote}
+        setSelectedNote={setSelectedNote}/>
     </div>
   )
 }
