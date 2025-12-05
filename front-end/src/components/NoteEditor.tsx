@@ -13,7 +13,7 @@ interface NoteEditorProps {
   setSelectedNote: (note: Note | null) => void;
 }
 
-const NoteEditor = ({notes, setNotes, selectedNote, setSelectedNote}: NoteEditorProps) => {
+const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) => {
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState("");
@@ -25,26 +25,27 @@ const NoteEditor = ({notes, setNotes, selectedNote, setSelectedNote}: NoteEditor
 
   // Load content when note changes
   useEffect(() => {
-    if (!blockNoteEditor) return;
-    
-    if (selectedNote) {
-      setTitle(selectedNote.title || "");
-      blockNoteEditor.replaceBlocks(blockNoteEditor.document, selectedNote.body ? JSON.parse(selectedNote.body) : []);
-      setContent(selectedNote.body || "[]");
-    }
-  }, [selectedNote, blockNoteEditor]);
+    if (!blockNoteEditor || !selectedNote) return;
+    setTitle(selectedNote.title || "");
+    blockNoteEditor.replaceBlocks(blockNoteEditor.document, selectedNote.body ? JSON.parse(selectedNote.body) : []);
+    setContent(selectedNote.body || "[]");
+  }, [selectedNote]);
 
+  // Debounced auto-save when note is edited
   useEffect(() => {
     if (!selectedNote) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
+
+    const currentNoteId = selectedNote.id;
     saveTimer.current = setTimeout(async () => {
       try {
+        if (currentNoteId !== selectedNote.id) return;
         setIsSaving(true);
-        await apiFetch(`/api/notes/${selectedNote.id}`, {
+        await apiFetch(`/api/notes/${currentNoteId}`, {
           method: "PUT",
           body: { title, body: content }
         });
-        setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, title, body: content} : n));
+        setNotes(prev => prev.map(note => note.id === selectedNote.id ? { ...note, title, body: content} : note));
       } catch (err) {
         console.error("Failed to save note:", err);
       } finally {
@@ -55,19 +56,16 @@ const NoteEditor = ({notes, setNotes, selectedNote, setSelectedNote}: NoteEditor
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [title, content, selectedNote]);
+  }, [title, content]);
 
   const handleCreateNote = async () => {
     try {
       const newNote = await apiFetch<Note>("/api/notes", {method: "POST"});
+      setNotes(prev => [newNote, ...prev]);
       setSelectedNote(newNote);
     } catch (err) {
       console.error("Failed to create note:", err);
     }
-  }
-
-  const handleEditorChange = (editor: any) => {
-    setContent(JSON.stringify(editor.document));
   }
   
   if (!selectedNote) {
@@ -100,7 +98,7 @@ const NoteEditor = ({notes, setNotes, selectedNote, setSelectedNote}: NoteEditor
         <BlockNoteView 
           editor={blockNoteEditor}
           editable={!!selectedNote}
-          onChange={handleEditorChange}
+          onChange={(editor) => setContent(JSON.stringify(editor.document))}
         />
       </div>
 

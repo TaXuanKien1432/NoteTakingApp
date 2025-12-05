@@ -82,7 +82,7 @@ const Sidebar = ({notes, setNotes, selectedNote, setSelectedNote}: SidebarProps)
   };
 
   return (
-    <aside className="w-72 h-screen bg-gray-100 border-r border-gray-300 flex flex-col p-2">
+    <aside className="w-72 h-screen bg-gray-100 border-r border-gray-300 flex flex-col flex-shrink-0 p-2">
       {/* USER PROFILE */}
       <div className="relative" ref={menuRef}>
         <div 

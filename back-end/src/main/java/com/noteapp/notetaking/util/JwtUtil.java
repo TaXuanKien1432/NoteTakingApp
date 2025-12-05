@@ -11,7 +11,7 @@ import java.util.Map;
 @Component //Generate, Extract and Validate JWT
 public class JwtUtil {
     private final SecretKey SECRET_KEY = Jwts.SIG.HS256.key().build();
-    private final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
 
     public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
