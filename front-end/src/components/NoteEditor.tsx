@@ -70,13 +70,13 @@ const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) 
   
   if (!selectedNote) {
     return (
-      <div className='flex flex-col items-center justify-center h-screen w-full text-gray-500'>
+      <div className='flex flex-col items-center justify-center h-screen w-full text-secondary'>
         <h1 className='text-2xl font-semibold mb-4'>Hello</h1>
-        <p className='mb-6 text-center text-gray-600'>
+        <p className='mb-6 text-center text-secondary'>
           Choose a note from the sidebar or create a new one to start writing.
         </p>
         <button
-          className='px-5 py-2 bg-jotpool text-white rounded-lg hover:bg-blue-600 transition'
+          className='btn-primary'
           onClick={handleCreateNote}>
             Create New Note
           </button>
@@ -102,7 +102,7 @@ const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) 
         />
       </div>
 
-      <div className='text-sm text-gray-400 mt-2 text-right'>{isSaving ? "Saving..." : "Saved"}</div>
+      <div className='text-sm text-muted mt-2 text-right'>{isSaving ? "Saving..." : "Saved"}</div>
       
     </div>
     

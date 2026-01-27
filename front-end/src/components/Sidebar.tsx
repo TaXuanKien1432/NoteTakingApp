@@ -91,13 +91,13 @@ const Sidebar = ({notes, setNotes, selectedNote, setSelectedNote}: SidebarProps)
             e.stopPropagation();
             setShowMenu((prev) => !prev);
           }}>
-            <img src={user?.profilePicture || defaultAvatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+            <img src={user?.profilePicture || defaultAvatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = defaultAvatar; }} />
             <div>{user?.name || "User"}</div>
         </div>
         {showMenu && (
           <div className="absolute top-12 left-0 w-80 bg-white shadow-md border border-gray-200 rounded-lg p-2 z-10">
             <div className="flex gap-3 border-b pb-2 border-gray-300">
-              <img src={user?.profilePicture || defaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+              <img src={user?.profilePicture || defaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = defaultAvatar; }} />
               <div className="flex flex-col">
                 <p className="font-semibold text-sm">{user?.name || "User"}</p>
                 <p className="text-gray-500 font-medium text-sm">{user?.email || ""}</p>
@@ -128,7 +128,7 @@ const Sidebar = ({notes, setNotes, selectedNote, setSelectedNote}: SidebarProps)
 
         <div className='flex-1 overflow-y-auto'>
           {loading ? (
-            <p className='text-md text-gray-500 px-3 py-2'>Loading notes...</p>
+            <p className='text-md text-secondary px-3 py-2'>Loading notes...</p>
           ) : (
             notes.map((note) => (
               <div

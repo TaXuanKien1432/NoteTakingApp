@@ -3,3 +3,50 @@
 @theme {
     --color-jotpool: #0473ea
 }
+
+@layer components {
+    /* Buttons */
+    .btn-primary {
+        @apply px-4 py-2 rounded-lg font-medium text-white bg-jotpool hover:bg-blue-600 transition-colors;
+    }
+
+    .btn-secondary {
+        @apply px-4 py-2 rounded-lg font-medium border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 transition-colors;
+    }
+
+    .btn-danger {
+        @apply px-4 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors;
+    }
+
+    /* Form Inputs */
+    .input-field {
+        @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-jotpool focus:border-transparent;
+    }
+
+    /* Modal/Popup */
+    .modal-overlay {
+        @apply fixed inset-0 bg-black/40 flex items-center justify-center z-50;
+    }
+
+    .modal-content {
+        @apply bg-white rounded-lg shadow-lg p-6;
+    }
+
+    /* OAuth/Social Buttons */
+    .btn-oauth {
+        @apply relative w-full px-4 py-2 flex justify-center items-center rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition-colors;
+    }
+
+    /* Text colors for consistency */
+    .text-primary {
+        @apply text-gray-800;
+    }
+
+    .text-secondary {
+        @apply text-gray-500;
+    }
+
+    .text-muted {
+        @apply text-gray-400;
+    }
+}

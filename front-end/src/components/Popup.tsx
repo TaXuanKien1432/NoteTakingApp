@@ -1,27 +1,35 @@
 import React from 'react'
+import { AiOutlineCheckCircle, AiOutlineCloseCircle, AiOutlineInfoCircle, AiOutlineWarning } from 'react-icons/ai'
 
-type PopupColor = "red" | "green" | "blue" | "yellow";
+type PopupType = "error" | "success" | "info" | "warning";
 
 interface PopupProps {
   message: string;
-  color: PopupColor;
+  type?: PopupType;
   onClose: () => void;
 }
 
-const colorMap: Record<PopupColor, string> = {
-  red:    "bg-red-100 text-red-700 border-red-300",
-  green:  "bg-green-100 text-green-700 border-green-300",
-  blue:   "bg-blue-100 text-blue-700 border-blue-300",
-  yellow: "bg-yellow-100 text-yellow-700 border-yellow-300",
+const iconMap: Record<PopupType, { icon: React.ReactNode; color: string }> = {
+  error:   { icon: <AiOutlineCloseCircle />, color: "text-red-500" },
+  success: { icon: <AiOutlineCheckCircle />, color: "text-green-500" },
+  info:    { icon: <AiOutlineInfoCircle />, color: "text-blue-500" },
+  warning: { icon: <AiOutlineWarning />, color: "text-yellow-500" },
 };
 
-const Popup:React.FC<PopupProps> = ({message, color, onClose}) => {
+const Popup: React.FC<PopupProps> = ({ message, type = "error", onClose }) => {
+  const { icon, color } = iconMap[type];
+
   return (
-    <div className='fixed inset-0 bg-black/30 flex justify-center items-center z-[100]'>
-        <div className={`min-w-[300px] border rounded-lg shadow-lg px-6 py-5 flex flex-col items-center gap-y-4 ${colorMap[color]}`}>
-            <div className='font-medium text-center'>{message}</div>
-            <button className='px-4 py-2 rounded-md bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-medium' onClick={onClose}>Close</button>
+    <div className='modal-overlay'>
+      <div className='modal-content w-80'>
+        <div className='flex items-start gap-3 mb-4'>
+          <span className={`text-2xl flex-shrink-0 ${color}`}>{icon}</span>
+          <p className='text-sm text-primary'>{message}</p>
         </div>
+        <div className='flex justify-end'>
+          <button className='btn-secondary' onClick={onClose}>Close</button>
+        </div>
+      </div>
     </div>
   )
 }

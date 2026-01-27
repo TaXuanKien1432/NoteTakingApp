@@ -34,15 +34,15 @@ const Auth:React.FC = () => {
         </div>}
       <div className='w-100 flex items-center justify-center my-6 space-x-2'>
         <div className='flex-grow border-t border-gray-300'></div>
-        <div className='text-gray-400'>OR</div>
+        <div className='text-muted'>OR</div>
         <div className='flex-grow border-t border-gray-300'></div>
       </div>
         <div className='w-100 flex flex-col gap-y-3'>
-          <button onClick={startGoogleOAuth} className='relative w-full px-3 py-2 flex justify-center items-center rounded-lg border border-gray-300 hover:bg-gray-100'>
+          <button onClick={startGoogleOAuth} className='btn-oauth'>
             <FcGoogle className='text-xl absolute left-3'/>
             <div>Continue with Google</div>
           </button>
-          <button onClick={startGithubOAuth} className='relative w-full px-3 py-2 flex justify-center items-center rounded-lg border border-gray-300 hover:bg-gray-100'>
+          <button onClick={startGithubOAuth} className='btn-oauth'>
             <FaGithub className='text-xl absolute left-3'/>
             <div>Continue with GitHub</div>
           </button>

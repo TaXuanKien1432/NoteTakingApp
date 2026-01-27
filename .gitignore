@@ -2,12 +2,23 @@
 .idea/
 *.iml
 
-# Logs
-*.log
+# VS Code
+.vscode/*
+!.vscode/extensions.json
 
 # Maven
 target/
 build/
 
+# Node.js
+node_modules/
+dist/
+
+# Logs
+*.log
+
 # Environment variables
 .env
+
+# Claude Code
+CLAUDE.md
