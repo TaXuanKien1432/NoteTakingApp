@@ -5,6 +5,7 @@ import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { useCreateBlockNote } from "@blocknote/react";
 import { apiFetch } from '../services/api';
+import { useSaveQueue } from '../hooks/useSaveQueue';
 
 interface NoteEditorProps {
   notes: Note[];
@@ -15,9 +16,9 @@ interface NoteEditorProps {
 
 const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) => {
   const [title, setTitle] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [content, setContent] = useState("");
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [body, setBody] = useState("");
+  const isLoadingRef = useRef(false); // Flag to ignore onChange during note switch
+  const { queueChange, isSaving } = useSaveQueue(setNotes);
 
   const blockNoteEditor = useCreateBlockNote({
     initialContent: selectedNote?.body ? JSON.parse(selectedNote.body) : undefined,
@@ -26,37 +27,36 @@ const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) 
   // Load content when note changes
   useEffect(() => {
     if (!blockNoteEditor || !selectedNote) return;
+
+    isLoadingRef.current = true; // Start ignoring onChange
+
     setTitle(selectedNote.title || "");
     blockNoteEditor.replaceBlocks(blockNoteEditor.document, selectedNote.body ? JSON.parse(selectedNote.body) : []);
-    setContent(selectedNote.body || "[]");
-  }, [selectedNote]);
+    setBody(selectedNote.body || "[]");
 
-  // Debounced auto-save when note is edited
-  useEffect(() => {
-    if (!selectedNote) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
+    // Re-enable onChange after the current event loop settles
+    requestAnimationFrame(() => {
+      isLoadingRef.current = false;
+    });
+  }, [selectedNote?.id]);
 
-    const currentNoteId = selectedNote.id;
-    saveTimer.current = setTimeout(async () => {
-      try {
-        if (currentNoteId !== selectedNote.id) return;
-        setIsSaving(true);
-        await apiFetch(`/api/notes/${currentNoteId}`, {
-          method: "PUT",
-          body: { title, body: content }
-        });
-        setNotes(prev => prev.map(note => note.id === selectedNote.id ? { ...note, title, body: content} : note));
-      } catch (err) {
-        console.error("Failed to save note:", err);
-      } finally {
-        setIsSaving(false);
-      }
-    }, 1000);
+  // Handle title change
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+    if (selectedNote) {
+      queueChange(selectedNote.id, newTitle, body);
+    }
+  };
 
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, [title, content]);
+  // Handle body change
+  const handleBodyChange = (newBody: string) => {
+    if (isLoadingRef.current) return; // Ignore onChange during note switch
+
+    setBody(newBody);
+    if (selectedNote) {
+      queueChange(selectedNote.id, title, newBody);
+    }
+  };
 
   const handleCreateNote = async () => {
     try {
@@ -89,7 +89,7 @@ const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) 
       {/* Title */}
       <input
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => handleTitleChange(e.target.value)}
         placeholder='Untitled'
         className='text-2xl font-semibold border-none outline-none mb-4 w-full text-gray-800'
       />
@@ -98,14 +98,14 @@ const NoteEditor = ({setNotes, selectedNote, setSelectedNote}: NoteEditorProps) 
         <BlockNoteView 
           editor={blockNoteEditor}
           editable={!!selectedNote}
-          onChange={(editor) => setContent(JSON.stringify(editor.document))}
+          onChange={(editor) => handleBodyChange(JSON.stringify(editor.document))}
         />
       </div>
 
-      <div className='text-sm text-muted mt-2 text-right'>{isSaving ? "Saving..." : "Saved"}</div>
-      
+      <div className='text-sm text-muted mt-2 text-right'>
+        {isSaving(selectedNote.id) ? "Saving..." : "Saved"}
+      </div>
     </div>
-    
   )
 }
 
