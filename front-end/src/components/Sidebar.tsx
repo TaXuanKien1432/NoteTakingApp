@@ -2,12 +2,11 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/default-avatar.svg'
 import { AiOutlineHome, AiOutlinePlus } from "react-icons/ai";
-import { PiNewspaper } from "react-icons/pi";
 import { BiLock } from 'react-icons/bi';
 import { apiFetch } from '../services/api';
 import { UserContext } from '../contexts/UserContext';
 import type { Note } from '../pages/Home';
-import { FiTrash2 } from 'react-icons/fi';
+import { FiFileText, FiTrash2 } from 'react-icons/fi';
 import ConfirmationPopup from './ConfirmationPopup';
 
 interface SidebarProps {
@@ -136,7 +135,7 @@ const Sidebar = ({notes, setNotes, selectedNote, setSelectedNote}: SidebarProps)
                 className={`group flex items-center justify-between gap-2 px-3 py-2 text-sm text-gray-500 cursor-pointer rounded-md ${
                 selectedNote?.id === note.id ? "bg-gray-200" : "hover:bg-gray-200"}`}
               >
-                <PiNewspaper className='text-gray-500 w-5 h-5'/>
+                <FiFileText className='text-gray-500 w-5 h-5'/>
                 <span className='flex-1 truncate' onClick={() => setSelectedNote(note)}>
                   {note.title.trim() || "Untitled"}
                 </span>
