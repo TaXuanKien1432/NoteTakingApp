@@ -72,7 +72,9 @@ const CollabEditor = ({ selectedNote, setNotes, user }: CollabEditorProps) => {
           setTitle(next);
           setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, title: next } : n));
       };
+      // obs fire on every future change to yTitle, so we can keep the local state in sync with the Yjs document
       yTitle.observe(obs);
+      // manual reconciliation of current state, since observe only triggers on changes
       if (yTitle.length > 0) obs();
       return () => yTitle.unobserve(obs);
   }, [yTitle, setNotes, selectedNote.id]);
@@ -89,13 +91,6 @@ const CollabEditor = ({ selectedNote, setNotes, user }: CollabEditorProps) => {
     return (
       <div className="flex flex-col h-screen w-full items-center justify-center bg-white p-8">
         <div className="max-w-md w-full text-center border border-gray-200 rounded-lg p-8">
-          <div
-            className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-2xl ${
-              authError === "expired" ? "bg-blue-50 text-jotpool" : "bg-red-50 text-red-500"
-            }`}
-          >
-            {authError === "expired" ? "\u26A0" : "\u{1F512}"}
-          </div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             {authError === "expired" ? "Your session expired" : "No access to this note"}
           </h2>
